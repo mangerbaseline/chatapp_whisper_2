@@ -1,0 +1,550 @@
+export const getWelcomeEmailTemplate = (name: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f8fafc; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .btn { display: inline-block; padding: 12px 24px; background-color: #0f172a; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; margin-top: 20px; }
+    h1 { color: #0f172a; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Welcome to Chat App!</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Thanks for joining! We're thrilled to have you on board.</p>
+      <p>Get started by setting up your profile and exploring all the features we have to offer.</p>
+      <center>
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/dashboard" class="btn">Go to Dashboard</a>
+      </center>
+      <p style="margin-top: 30px; font-size: 14px; color: #64748b;">If you have any questions, feel free to reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getPasswordResetEmailTemplate = (name: string, otp: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f8fafc; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .otp-box { background-color: #f1f5f9; border: 1px dashed #cbd5e1; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0; border-radius: 6px; }
+    h1 { color: #0f172a; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Password Reset Request</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>We received a request to reset your password. Use the OTP below to proceed. This OTP will expire in 10 minutes.</p>
+      <div class="otp-box">${otp}</div>
+      <p>If you didn't request a password reset, you can safely ignore this email.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getPlanBoughtEmailTemplate = (
+  name: string,
+  planName: string,
+  tokens: number,
+  amount: number,
+  currency: string,
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f0fdf4; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f8fafc; padding: 20px; border-radius: 6px; margin: 20px 0; }
+    .details p { margin: 5px 0; }
+    h1 { color: #166534; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Purchase Successful!</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Thank you for your purchase. Your payment was successful and your tokens have been added to your account.</p>
+      <div class="details">
+        <p><strong>Plan:</strong> ${planName}</p>
+        <p><strong>Tokens Added:</strong> ${tokens}</p>
+        <p><strong>Amount Paid:</strong> ${(amount / 100).toFixed(2)} ${currency.toUpperCase()}</p>
+      </div>
+      <p>Enjoy your new tokens!</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getRefundRequestEmailTemplate = (
+  name: string,
+  refundId: string,
+  planName: string,
+  reason: string,
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #fffbeb; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f8fafc; padding: 20px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #f59e0b; }
+    h1 { color: #b45309; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Refund Request Received</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>We've received your refund request for the <strong>${planName}</strong> plan.</p>
+      <p>Our team will review your request based on the reason provided:</p>
+      <div class="details">
+        <p><strong>Refund ID:</strong> ${refundId}</p>
+        <p><em>"${reason}"</em></p>
+      </div>
+      <p>We will notify you once a decision has been made. This process typically takes 1-2 business days.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getRefundInitiatedEmailTemplate = (
+  name: string,
+  refundId: string,
+  planName: string,
+  amount: number,
+  currency: string,
+  adminNote?: string,
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #eff6ff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .amount { font-size: 24px; font-weight: bold; color: #1d4ed8; text-align: center; margin: 20px 0; }
+    .note { background-color: #f8fafc; padding: 15px; border-radius: 6px; font-style: italic; font-size: 14px; margin-top: 15px; }
+    h1 { color: #1e3a8a; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Refund Approved</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Good news! Your refund request for the <strong>${planName}</strong> plan has bene approved and the refund has been initiated.</p>
+      <p><strong>Refund ID:</strong> ${refundId}</p>
+      <div class="amount">
+        ${amount.toFixed(2)} ${currency.toUpperCase()}
+      </div>
+      <p>Please note that it may take 5-10 business days for the funds to appear back on your original payment method, depending on your bank.</p>
+      ${adminNote ? `<div class="note"><strong>Note from Admin:</strong> ${adminNote}</div>` : ""}
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getRefundRejectedEmailTemplate = (
+  name: string,
+  refundId: string,
+  planName: string,
+  adminNote?: string,
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #fef2f2; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .note { background-color: #f8fafc; padding: 15px; border-radius: 6px; border-left: 4px solid #ef4444; margin: 20px 0; }
+    h1 { color: #991b1b; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Refund Request Update</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>We've reviewed your refund request for the <strong>${planName}</strong> plan (Refund ID: ${refundId}).</p>
+      <p>Unfortunately, we are unable to process this refund. Your tokens remain in your account.</p>
+      ${adminNote ? `<div class="note"><strong>Reason:</strong> ${adminNote}</div>` : ""}
+      <p>If you have further questions, please reach out to our support team.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getRefundedEmailTemplate = (
+  name: string,
+  refundId: string,
+  planName: string,
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f0fdf4; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    h1 { color: #166534; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Refund Complete</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Your refund for the <strong>${planName}</strong> plan (Refund ID: ${refundId}) has successfully finished processing and the funds should now be available in your original payment method.</p>
+      <p>Thank you for your patience!</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getTicketCreatedEmailTemplate = (
+  name: string,
+  ticketId: string,
+  subject: string,
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f8fafc; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f1f5f9; padding: 20px; border-radius: 6px; margin: 20px 0; }
+    .details p { margin: 5px 0; }
+    h1 { color: #0f172a; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Support Ticket Created</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Your support ticket has been created successfully. Our team will review your request and get back to you as soon as possible.</p>
+      <div class="details">
+        <p><strong>Ticket ID:</strong> ${ticketId}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+      </div>
+      <p>Thank you for reaching out to us!</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getTicketClosedEmailTemplate = (
+  name: string,
+  ticketId: string,
+  subject: string,
+) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f0fdf4; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f8fafc; padding: 20px; border-radius: 6px; margin: 20px 0; }
+    .details p { margin: 5px 0; }
+    h1 { color: #166534; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Support Ticket Closed</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Your support ticket has been marked as resolved and closed.</p>
+      <div class="details">
+        <p><strong>Ticket ID:</strong> ${ticketId}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+      </div>
+      <p>If you have any further questions or if your issue is not fully resolved, please open a new ticket or reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getPasswordResetSuccessEmailTemplate = (name: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f0fdf4; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    h1 { color: #166534; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Password Reset Successful</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Your password has been successfully reset. You can now log in to your account with your new password.</p>
+      <p>If you did not perform this action, please contact support immediately.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getInviteEmailTemplate = (inviterName: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f8fafc; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .btn { display: inline-block; padding: 12px 24px; background-color: #0f172a; color: #ffffff !important; text-decoration: none; border-radius: 6px; font-weight: 500; margin-top: 20px; }
+    h1 { color: #0f172a; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Join Whispr!</h1>
+    </div>
+    <div class="content">
+      <p>Hello,</p>
+      <p><strong>${inviterName}</strong> has invited you to join **Whispr**, a real-time chat platform where you can connect with friends, make calls, and more.</p>
+      <p>Click the button below to create your account and start chatting!</p>
+      <center>
+        <a href="${process.env.NEXT_PUBLIC_BASE_URL}/auth/sign-up" class="btn">Join Whispr Now</a>
+      </center>
+      <p style="margin-top: 30px; font-size: 14px; color: #64748b;">If you have any questions, feel free to visit our website.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getBankVerificationSubmittedTemplate = (name: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f8fafc; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    h1 { color: #0f172a; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Verification Submitted</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Your bank account details have been successfully submitted for verification.</p>
+      <p>Our admin team will review your information shortly. You'll receive another email once your account is verified and ready for token redemptions.</p>
+      <p>Thank you for your patience!</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getBankVerificationApprovedTemplate = (name: string, bankName: string, last4: string) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f0fdf4; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; }
+    h1 { color: #166534; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Bank Account Verified!</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Great news! Your bank account has been successfully verified. You can now redeem your tokens for payouts.</p>
+      <div class="details">
+        <p><strong>Bank:</strong> ${bankName}</p>
+        <p><strong>Account:</strong> ****${last4}</p>
+      </div>
+      <p>You can start redemptions from your dashboard anytime.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getRedemptionInitiatedTemplate = (name: string, tokens: number, amount: number) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #eff6ff; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; }
+    h1 { color: #1e3a8a; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Redemption Initiated</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Your redemption request for <strong>${tokens} tokens</strong> has been received and is being processed.</p>
+      <div class="details">
+        <p><strong>Net Payout:</strong> $${amount.toFixed(2)}</p>
+        <p><strong>Status:</strong> Initiated</p>
+      </div>
+      <p>We'll notify you as soon as the payout is completed by Stripe. This usually takes 1-3 business days.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getRedemptionSuccessTemplate = (name: string, tokens: number, amount: number) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #f0fdf4; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; }
+    h1 { color: #166534; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Payout Successful!</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Your payout of $${amount.toFixed(2)} for <strong>${tokens} tokens</strong> has been successfully processed and sent to your bank account.</p>
+      <div class="details">
+        <p><strong>Amount:</strong> $${amount.toFixed(2)}</p>
+        <p><strong>Status:</strong> Completed</p>
+      </div>
+      <p>Thank you for being a part of Whispr!</p>
+    </div>
+  </div>
+</body>
+</html>
+`;
+
+export const getRedemptionFailedTemplate = (name: string, tokens: number, amount: number) => `
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; color: #333; }
+    .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+    .header { background-color: #fef2f2; padding: 30px; text-align: center; border-radius: 8px 8px 0 0; }
+    .content { background-color: #ffffff; padding: 30px; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; }
+    .details { background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0; border-left: 4px solid #ef4444; }
+    h1 { color: #991b1b; margin-top: 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <img src="${process.env.NEXT_PUBLIC_BASE_URL}/logo.png" alt="Chat App Logo" style="height: 40px; margin-bottom: 15px;" />
+      <h1>Payout Failed</h1>
+    </div>
+    <div class="content">
+      <p>Hi ${name},</p>
+      <p>Unfortunately, your payout of $${amount.toFixed(2)} for <strong>${tokens} tokens</strong> has failed.</p>
+      <div class="details">
+        <p><strong>Status:</strong> Failed</p>
+        <p><strong>Action:</strong> Your tokens have been credited back to your balance.</p>
+      </div>
+      <p>Please double-check your bank account details or contact support for assistance.</p>
+    </div>
+  </div>
+</body>
+</html>
+`;

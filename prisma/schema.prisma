@@ -1,0 +1,297 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User {
+  id                   String    @id @default(uuid())
+  email                String    @unique
+  password             String?
+  role                 Role      @default(USER)
+  firstName            String?
+  lastName             String?
+  dateOfBirth          DateTime?
+  address              String?
+  mobileNo             String?   @unique
+  otp                  String?
+  otpExpiry            DateTime?
+  resetPasswordToken   String?
+  resetPasswordExpiry  DateTime?
+  authProvider         String    @default("credentials")
+  image                String?
+  isActive             Boolean   @default(true)
+  lastSeen             DateTime  @default(now())
+  consecutiveLoginDays Int       @default(0)
+  lastLoginDate        DateTime  @default(now())
+  isDeactivated        Boolean   @default(false)
+  deactivatedAt        DateTime?
+  tokenBalance         Float     @default(0)
+  stripeCustomerId     String?
+  stripeAccountId      String?
+  bankAccountStatus    String    @default("none") // none, pending, verified, rejected
+  linkedBankLast4      String?
+  linkedBankName       String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  connections          UserConnection[] @relation("ConnectionsAsA")
+  connectedTo          UserConnection[] @relation("ConnectionsAsB")
+
+  conversationParticipants ConversationParticipant[]
+  conversationsAsAdmin     Conversation[] @relation("GroupAdmin")
+  messages                 Message[]      @relation("UserMessages")
+  eventsAsOrganizer        Event[]        @relation("EventOrganizer")
+  eventParticipants        EventParticipant[]
+  tickets                  Ticket[]       @relation("UserTickets")
+  transactions             TokenTransaction[] @relation("UserTransactions")
+  transactionsSent         TokenTransaction[] @relation("TransactionsSent")
+  transactionsReceived     TokenTransaction[] @relation("TransactionsReceived")
+  refundRequests           RefundRequest[]    @relation("UserRefunds")
+  refundRequestsProcessed  RefundRequest[]    @relation("AdminProcessedRefunds")
+  bankVerificationRequests BankVerificationRequest[] @relation("UserBankVerifications")
+  invitationsSent          Invitation[]   @relation("InvitationsSent")
+  invitationsReceived      Invitation[]   @relation("InvitationsReceived")
+  notifications            Notification[] @relation("UserNotifications")
+  tokenPlansCreated        TokenPlan[]    @relation("TokenPlanCreator")
+  pushSubscriptions        PushSubscription[] @relation("UserPushSubscriptions")
+}
+
+model Conversation {
+  id              String   @id @default(uuid())
+  isGroup         Boolean  @default(false)
+  name            String?
+  isSupportTicket Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  lastMessageId   String?  @unique
+  pinnedMessageId String?  @unique
+  groupAdminId    String?
+
+  participants    ConversationParticipant[]
+  groupAdmin      User?    @relation("GroupAdmin", fields: [groupAdminId], references: [id], onDelete: SetNull)
+  lastMessage     Message? @relation("LastMessage", fields: [lastMessageId], references: [id], onDelete: SetNull)
+  pinnedMessage   Message? @relation("PinnedMessage", fields: [pinnedMessageId], references: [id], onDelete: SetNull)
+  messages        Message[] @relation("ConversationMessages")
+  tickets         Ticket[]  @relation("ConversationTickets")
+}
+
+model Message {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  text           String?  @db.Text
+  isRead         Boolean  @default(false)
+  readAt         DateTime?
+  isPinned       Boolean  @default(false)
+  attachments    Json?
+  reactions      Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  conversation   Conversation @relation("ConversationMessages", fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         User         @relation("UserMessages", fields: [senderId], references: [id], onDelete: Cascade)
+
+  lastIn         Conversation? @relation("LastMessage")
+  pinnedIn       Conversation? @relation("PinnedMessage")
+}
+
+model Event {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?  @db.Text
+  date         DateTime
+  startTime    String
+  endTime      String?
+  color        String   @default("#6366f1")
+  status       String   @default("scheduled") // scheduled, cancelled, completed
+  notified     Boolean  @default(false)
+  organizerId  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  organizer    User     @relation("EventOrganizer", fields: [organizerId], references: [id], onDelete: Cascade)
+  participants EventParticipant[]
+}
+
+model Ticket {
+  id             String   @id @default(uuid())
+  ticketId       String   @unique
+  userId         String
+  subject        String
+  status         String   @default("open") // open, fulfilled
+  conversationId String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User         @relation("UserTickets", fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation("ConversationTickets", fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model TokenTransaction {
+  id                    String   @id @default(uuid())
+  userId                String
+  type                  String   // purchase, transfer_sent, transfer_received, refund, redemption
+  amount                Float
+  balanceAfter          Float
+  planId                String?
+  amountMoney           Float?
+  currency              String?
+  stripeSessionId       String?
+  stripePaymentIntentId String?
+  fromUserId            String?
+  toUserId              String?
+  note                  String?  @db.Text
+  status                String   @default("completed") // initiated, completed, failed
+  stripePayoutId        String?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user           User       @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  fromUser       User?      @relation("TransactionsSent", fields: [fromUserId], references: [id], onDelete: SetNull)
+  toUser         User?      @relation("TransactionsReceived", fields: [toUserId], references: [id], onDelete: SetNull)
+  plan           TokenPlan? @relation(fields: [planId], references: [id], onDelete: SetNull)
+  refundRequests RefundRequest[] @relation("TransactionRefunds")
+}
+
+model RefundRequest {
+  id             String   @id @default(uuid())
+  userId         String
+  transactionId  String
+  reason         String   @db.Text
+  status         String   @default("pending") // pending, initiated, refunded, rejected
+  refundAmount   Float    @default(0)
+  percentageCut  Float    @default(0)
+  tokensDeducted Float    @default(0)
+  adminNote      String?  @db.Text
+  processedById  String?
+  processedAt    DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user           User             @relation("UserRefunds", fields: [userId], references: [id], onDelete: Cascade)
+  transaction    TokenTransaction @relation("TransactionRefunds", fields: [transactionId], references: [id], onDelete: Cascade)
+  processedBy    User?            @relation("AdminProcessedRefunds", fields: [processedById], references: [id], onDelete: SetNull)
+}
+
+model BankVerificationRequest {
+  id                String   @id @default(uuid())
+  userId            String
+  firstName         String
+  lastName          String
+  phone             String
+  accountHolderName String
+  accountNumber     String
+  routingNumber     String
+  bankName          String
+  accountType       String   @default("individual") // individual, company
+  last4             String
+  dobDay            Int
+  dobMonth          Int
+  dobYear           Int
+  ssnLast4          String
+  fullSsn           String
+  addressLine1      String
+  addressCity       String
+  addressState      String
+  addressPostalCode String
+  status            String   @default("pending") // pending, approved, rejected
+  adminNote         String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user              User     @relation("UserBankVerifications", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Invitation {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  status     String   @default("pending") // pending, accepted, rejected
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  sender     User     @relation("InvitationsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver   User     @relation("InvitationsReceived", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // new_ticket, ticket_message, new_refund_request
+  title     String
+  message   String   @db.Text
+  link      String
+  isRead    Boolean  @default(false)
+  relatedId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TokenPlan {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  price       Float
+  currency    String   @default("usd")
+  tokens      Int
+  isActive    Boolean  @default(true)
+  createdById String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  createdBy   User               @relation("TokenPlanCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  transactions TokenTransaction[]
+}
+
+model UserConnection {
+  userAId String
+  userBId String
+  userA   User   @relation("ConnectionsAsA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB   User   @relation("ConnectionsAsB", fields: [userBId], references: [id], onDelete: Cascade)
+
+  @@id([userAId, userBId])
+}
+
+model ConversationParticipant {
+  userId         String
+  conversationId String
+  unreadCount    Int          @default(0)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@id([userId, conversationId])
+}
+
+model EventParticipant {
+  userId  String
+  eventId String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@id([userId, eventId])
+}
+
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  endpoint  String   @db.Text
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user      User     @relation("UserPushSubscriptions", fields: [userId], references: [id], onDelete: Cascade)
+}
