@@ -307,6 +307,15 @@ export function useWebRTC() {
         addLocalTracksToPc(pc);
       }
 
+      if (isVideoRef.current) {
+        const hasVideoSender = pc
+          .getSenders()
+          .some((s) => s.track?.kind === "video");
+        if (!hasVideoSender) {
+          pc.addTransceiver("video", { direction: "recvonly" });
+        }
+      }
+
       const offer = await pc.createOffer();
       await pc.setLocalDescription(offer);
       socket.emit("webrtc:offer", { to: userId, offer });
