@@ -6,8 +6,7 @@ import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
-import pkg from "@prisma/client";
-const { PrismaClient } = pkg;
+import { PrismaClient } from "./generated/prisma/client.js";
 import { PrismaMariaDb } from "@prisma/adapter-mariadb";
 import webpush from "web-push";
 
