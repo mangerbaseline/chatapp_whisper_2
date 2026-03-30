@@ -118,7 +118,12 @@ app.prepare().then(() => {
   io.on("connection", async (socket) => {
     console.log(`User connected: ${socket.userId} (${socket.id})`);
 
-    userSockets.set(socket.userId, socket.id);
+    if (!userSockets.has(socket.userId)) {
+      userSockets.set(socket.userId, new Set());
+      io.emit("user_online", { userId: socket.userId });
+    }
+    userSockets.get(socket.userId).add(socket.id);
+
     socket.join(`user:${socket.userId}`);
 
     try {
@@ -132,8 +137,6 @@ app.prepare().then(() => {
 
     const onlineUserIds = Array.from(userSockets.keys());
     socket.emit("online_users_list", { userIds: onlineUserIds });
-
-    io.emit("user_online", { userId: socket.userId });
 
     socket.on("join_conversation", ({ conversationId }) => {
       socket.join(`conversation:${conversationId}`);
@@ -177,8 +180,6 @@ app.prepare().then(() => {
       if (!payload.sender) {
         payload.sender = socket.userId;
       }
-
-      io.to(`conversation:${conversationId}`).emit("new_message", payload);
 
       try {
         const conversation = await prisma.conversation.findUnique({
@@ -354,24 +355,15 @@ app.prepare().then(() => {
     });
 
     socket.on("send_invite", ({ receiverId, invitation }) => {
-      const receiverSocketId = userSockets.get(receiverId);
-      if (receiverSocketId) {
-        io.to(receiverSocketId).emit("invite:received", invitation);
-      }
+      io.to(`user:${receiverId}`).emit("invite:received", invitation);
     });
 
     socket.on("accept_invite", ({ senderId, invitation }) => {
-      const senderSocketId = userSockets.get(senderId);
-      if (senderSocketId) {
-        io.to(senderSocketId).emit("invite:accepted", invitation);
-      }
+      io.to(`user:${senderId}`).emit("invite:accepted", invitation);
     });
 
     socket.on("reject_invite", ({ senderId, invitation }) => {
-      const senderSocketId = userSockets.get(senderId);
-      if (senderSocketId) {
-        io.to(senderSocketId).emit("invite:rejected", invitation);
-      }
+      io.to(`user:${senderId}`).emit("invite:rejected", invitation);
     });
 
     socket.on(
@@ -383,10 +375,7 @@ app.prepare().then(() => {
 
         targetIds.forEach((id) => {
           if (id !== socket.userId) {
-            const targetSocketId = userSockets.get(id);
-            if (targetSocketId) {
-              io.to(targetSocketId).emit("new_conversation", conversation);
-            }
+            io.to(`user:${id}`).emit("new_conversation", conversation);
           }
         });
       },
@@ -405,7 +394,6 @@ app.prepare().then(() => {
           participants: new Set([socket.userId]),
         });
 
-        // Broadcast to everyone in the conversation that a call has started
         io.to(`conversation:${conversationId}`).emit("call:active", {
           conversationId,
           isVideo: !!isVideo,
@@ -415,17 +403,14 @@ app.prepare().then(() => {
 
         participants.forEach((p) => {
           if (p.id !== socket.userId) {
-            const targetSocketId = userSockets.get(p.id);
-            if (targetSocketId) {
-              io.to(targetSocketId).emit("call:incoming", {
-                conversationId,
-                participants,
-                callerId: socket.userId,
-                callerInfo,
-                isVideo: !!isVideo,
-                isGroup: !!isGroup,
-              });
-            }
+            io.to(`user:${p.id}`).emit("call:incoming", {
+              conversationId,
+              participants,
+              callerId: socket.userId,
+              callerInfo,
+              isVideo: !!isVideo,
+              isGroup: !!isGroup,
+            });
           }
         });
       },
@@ -459,13 +444,10 @@ app.prepare().then(() => {
       console.log(
         `[SERVER] Call accepted by ${socket.userId} in ${conversationId}`,
       );
-      const callerSocketId = userSockets.get(callerId);
-      if (callerSocketId) {
-        io.to(callerSocketId).emit("call:accepted", {
-          receiverId: socket.userId,
-          receiverInfo,
-        });
-      }
+      io.to(`user:${callerId}`).emit("call:accepted", {
+        receiverId: socket.userId,
+        receiverInfo,
+      });
     });
 
     socket.on("call:reject", ({ conversationId, callerId }) => {
@@ -507,90 +489,63 @@ app.prepare().then(() => {
     });
 
     socket.on("webrtc:offer", ({ to, offer }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:offer", {
-          from: socket.userId,
-          offer,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:offer", {
+        from: socket.userId,
+        offer,
+      });
     });
 
     socket.on("webrtc:answer", ({ to, answer }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:answer", {
-          from: socket.userId,
-          answer,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:answer", {
+        from: socket.userId,
+        answer,
+      });
     });
 
     socket.on("webrtc:ice-candidate", ({ to, candidate }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:ice-candidate", {
-          from: socket.userId,
-          candidate,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:ice-candidate", {
+        from: socket.userId,
+        candidate,
+      });
     });
 
     socket.on("webrtc:screen_offer", ({ to, offer }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:screen_offer", {
-          from: socket.userId,
-          offer,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:screen_offer", {
+        from: socket.userId,
+        offer,
+      });
     });
 
     socket.on("webrtc:screen_answer", ({ to, answer }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:screen_answer", {
-          from: socket.userId,
-          answer,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:screen_answer", {
+        from: socket.userId,
+        answer,
+      });
     });
 
     socket.on("webrtc:screen_ice-candidate", ({ to, candidate }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:screen_ice-candidate", {
-          from: socket.userId,
-          candidate,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:screen_ice-candidate", {
+        from: socket.userId,
+        candidate,
+      });
     });
 
     socket.on("call:end", ({ to }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        console.log(`Call ended by ${socket.userId} with ${to}`);
-        io.to(targetSocketId).emit("call:ended", { from: socket.userId });
-      }
+      console.log(`Call ended by ${socket.userId} with ${to}`);
+      io.to(`user:${to}`).emit("call:ended", { from: socket.userId });
     });
 
     socket.on("webrtc:screen_started", ({ to, trackId }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:screen_started", {
-          from: socket.userId,
-          trackId,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:screen_started", {
+        from: socket.userId,
+        trackId,
+      });
     });
 
     socket.on("webrtc:screen_stopped", ({ to }) => {
-      const targetSocketId = userSockets.get(to);
-      if (targetSocketId) {
-        io.to(targetSocketId).emit("webrtc:screen_stopped", {
-          from: socket.userId,
-        });
-      }
+      io.to(`user:${to}`).emit("webrtc:screen_stopped", {
+        from: socket.userId,
+      });
     });
 
     socket.on(
@@ -660,7 +615,15 @@ app.prepare().then(() => {
 
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${socket.userId} (${socket.id})`);
-      userSockets.delete(socket.userId);
+
+      const userSessionSockets = userSockets.get(socket.userId);
+      if (userSessionSockets) {
+        userSessionSockets.delete(socket.id);
+        if (userSessionSockets.size === 0) {
+          userSockets.delete(socket.userId);
+          io.emit("user_offline", { userId: socket.userId });
+        }
+      }
 
       // Clean up any active calls this user was in
       activeCalls.forEach((call, conversationId) => {
@@ -729,18 +692,15 @@ app.prepare().then(() => {
           const uniqueIds = [...new Set(allUserIds)];
 
           uniqueIds.forEach((userId) => {
-            const socketId = userSockets.get(userId);
-            if (socketId) {
-              io.to(socketId).emit("event:reminder", {
-                eventId: event.id,
-                title: event.title,
-                description: event.description || "",
-                startTime: event.startTime,
-                organizer: event.organizer?.firstName
-                  ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`
-                  : "Someone",
-              });
-            }
+            io.to(`user:${userId}`).emit("event:reminder", {
+              eventId: event.id,
+              title: event.title,
+              description: event.description || "",
+              startTime: event.startTime,
+              organizer: event.organizer?.firstName
+                ? `${event.organizer.firstName} ${event.organizer.lastName || ""}`
+                : "Someone",
+            });
           });
 
           await prisma.event.update({

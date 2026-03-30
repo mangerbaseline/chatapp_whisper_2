@@ -89,14 +89,12 @@ export function SocketProvider({ children }: { children: React.ReactNode }) {
     setSocket(newSocket);
 
     return () => {
-      if (socket) {
-        socket.off("connect");
-        socket.off("disconnect");
-        socket.off("connect_error");
-        socket.off("user_online");
-        socket.off("user_offline");
-        socket.off("event:reminder");
-      }
+      newSocket.off("connect");
+      newSocket.off("disconnect");
+      newSocket.off("connect_error");
+      newSocket.off("user_online");
+      newSocket.off("user_offline");
+      newSocket.off("event:reminder");
     };
   }, [user]);
 
