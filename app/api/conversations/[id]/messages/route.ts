@@ -169,8 +169,15 @@ export async function POST(
             url: `/dashboard/chat/${conversationId}`,
           });
 
+          const uniqueSubscriptions = new Map();
+          subscriptions.forEach((sub) => {
+            if (!uniqueSubscriptions.has(sub.endpoint)) {
+              uniqueSubscriptions.set(sub.endpoint, sub);
+            }
+          });
+
           await Promise.allSettled(
-            subscriptions.map(async (sub) => {
+            Array.from(uniqueSubscriptions.values()).map(async (sub: any) => {
               try {
                 await webpush.sendNotification(
                   {

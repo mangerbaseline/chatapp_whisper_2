@@ -181,6 +181,8 @@ app.prepare().then(() => {
         payload.sender = socket.userId;
       }
 
+      io.to(`conversation:${conversationId}`).emit("new_message", payload);
+
       try {
         const conversation = await prisma.conversation.findUnique({
           where: { id: conversationId },
@@ -234,54 +236,6 @@ app.prepare().then(() => {
               "conversation_updated",
               participantPayload,
             );
-
-            io.to(`user:${p.userId}`).emit("new_message", payload);
-
-            // Web Push Notifications for background/away users
-            if (p.userId !== socket.userId) {
-              try {
-                const subscriptions = await prisma.pushSubscription.findMany({
-                  where: { userId: p.userId },
-                });
-
-                if (subscriptions.length > 0) {
-                  const senderPart = conversation.participants.find(
-                    (part) => part.userId === socket.userId,
-                  );
-                  const senderName = senderPart?.user?.firstName || "Someone";
-
-                  const pushPayload = JSON.stringify({
-                    title: conversation.isGroup
-                      ? `${senderName} in ${conversation.name}`
-                      : senderName,
-                    body: payload.text || "Sent an attachment",
-                    url: `/dashboard/chat/${conversationId}`,
-                  });
-
-                  await Promise.allSettled(
-                    subscriptions.map(async (sub) => {
-                      try {
-                        await webpush.sendNotification(
-                          {
-                            endpoint: sub.endpoint,
-                            keys: { p256dh: sub.p256dh, auth: sub.auth },
-                          },
-                          pushPayload,
-                        );
-                      } catch (err) {
-                        if (err.statusCode === 404 || err.statusCode === 410) {
-                          await prisma.pushSubscription.delete({
-                            where: { id: sub.id },
-                          });
-                        }
-                      }
-                    }),
-                  );
-                }
-              } catch (pushErr) {
-                console.error("Push Error in Socket:", pushErr);
-              }
-            }
           }
         }
       } catch (err) {

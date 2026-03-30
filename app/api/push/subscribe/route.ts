@@ -25,14 +25,32 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const subscription = await prisma.pushSubscription.create({
-      data: {
+    const existing = await prisma.pushSubscription.findFirst({
+      where: {
         userId: userId,
         endpoint: endpoint,
-        p256dh: keys.p256dh,
-        auth: keys.auth,
       },
     });
+
+    let subscription;
+    if (existing) {
+      subscription = await prisma.pushSubscription.update({
+        where: { id: existing.id },
+        data: {
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+        },
+      });
+    } else {
+      subscription = await prisma.pushSubscription.create({
+        data: {
+          userId: userId,
+          endpoint: endpoint,
+          p256dh: keys.p256dh,
+          auth: keys.auth,
+        },
+      });
+    }
 
     return NextResponse.json({ data: subscription }, { status: 201 });
   } catch (error: any) {
