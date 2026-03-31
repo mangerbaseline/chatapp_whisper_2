@@ -348,6 +348,8 @@ app.prepare().then(() => {
           participants: new Set([socket.userId]),
         });
 
+        socket.join(`call:${conversationId}`);
+
         io.to(`conversation:${conversationId}`).emit("call:active", {
           conversationId,
           isVideo: !!isVideo,
@@ -388,10 +390,11 @@ app.prepare().then(() => {
         });
       }
 
-      socket.to(`conversation:${conversationId}`).emit("call:peer_joined", {
+      socket.to(`call:${conversationId}`).emit("call:peer_joined", {
         userId: socket.userId,
         userInfo,
       });
+      socket.join(`call:${conversationId}`);
     });
 
     socket.on("call:accept", ({ conversationId, callerId, receiverInfo }) => {
@@ -416,6 +419,8 @@ app.prepare().then(() => {
         `[SERVER] User ${socket.userId} left call in ${conversationId}`,
       );
 
+      socket.leave(`call:${conversationId}`);
+
       const activeCall = activeCalls.get(conversationId);
       if (activeCall) {
         activeCall.participants.delete(socket.userId);
@@ -437,7 +442,7 @@ app.prepare().then(() => {
         }
       }
 
-      socket.to(`conversation:${conversationId}`).emit("call:peer_left", {
+      socket.to(`call:${conversationId}`).emit("call:peer_left", {
         userId: socket.userId,
       });
     });
@@ -583,10 +588,10 @@ app.prepare().then(() => {
       activeCalls.forEach((call, conversationId) => {
         if (call.participants.has(socket.userId)) {
           call.participants.delete(socket.userId);
-          // Notify remaining participants
-          socket
-            .to(`conversation:${conversationId}`)
-            .emit("call:peer_left", { userId: socket.userId });
+          socket.leave(`call:${conversationId}`);
+          io.to(`call:${conversationId}`).emit("call:peer_left", {
+            userId: socket.userId,
+          });
 
           if (call.participants.size === 0) {
             activeCalls.delete(conversationId);

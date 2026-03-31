@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "node server.js",
+    "dev": "tsx server.js",
     "build": "npx prisma generate &&  next build",
     "start": "cross-env NODE_ENV=production tsx server.js",
     "lint": "eslint",

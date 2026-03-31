@@ -281,6 +281,12 @@ export function useWebRTC() {
     };
 
     const handleCallAccepted = async (data: any) => {
+      if (statusRef.current !== "calling") {
+        console.log(
+          `[WebRTC] Ignoring call:accepted since status is ${statusRef.current}, not calling.`,
+        );
+        return;
+      }
       const { receiverId, receiverInfo } = data;
       dispatch(acceptCall());
       dispatch(addParticipant({ id: receiverId, ...receiverInfo }));
@@ -291,15 +297,15 @@ export function useWebRTC() {
 
     const handlePeerJoined = async ({ userId, userInfo }: any) => {
       console.log("Peer joined call:", userId);
-      dispatch(addParticipant({ id: userId, ...userInfo }));
-      dispatch(setParticipantJoined({ id: userId, joined: true }));
-
-      if (statusRef.current === "receiving") {
+      if (statusRef.current !== "ongoing" && statusRef.current !== "calling") {
         console.log(
-          `[WebRTC] Ignoring peer joined from ${userId} since we are still receiving.`,
+          `[WebRTC] Ignoring peer joined from ${userId} since status is ${statusRef.current}.`,
         );
         return;
       }
+
+      dispatch(addParticipant({ id: userId, ...userInfo }));
+      dispatch(setParticipantJoined({ id: userId, joined: true }));
 
       const pc = createPeerConnection(userId);
       const stream = await startLocalMedia();
@@ -324,9 +330,9 @@ export function useWebRTC() {
     const handleWebRTCOffer = async ({ from, offer }: any) => {
       console.log(`[WebRTC] Received offer from ${from}`);
 
-      if (statusRef.current === "receiving") {
+      if (statusRef.current !== "ongoing" && statusRef.current !== "calling") {
         console.log(
-          `[WebRTC] Ignoring offer from ${from} since we are still receiving.`,
+          `[WebRTC] Ignoring offer from ${from} since status is ${statusRef.current}.`,
         );
         return;
       }
