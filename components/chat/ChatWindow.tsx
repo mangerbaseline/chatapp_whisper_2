@@ -94,10 +94,11 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
   );
   const loading = useAppSelector((state) => state.chat.messagesLoading);
   const [typingUsers, setTypingUsers] = useState<Set<string>>(new Set());
+  const [isAiLoading, setIsAiLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const notificationSoundRef = useRef<HTMLAudioElement | null>(null);
   const { socket, isConnected, onlineUsers } = useSocket();
-  const currentUser = useAppSelector((state: RootState) => state.auth.user);
+  const currentUser = useAppSelector((state) => state.auth.user);
   const balance = useAppSelector((state) => state.wallet.balance);
   const { state, isMobile, toggleSidebar } = useSidebar();
   const callStatus = useAppSelector((state: any) => state.call.status);
@@ -296,6 +297,36 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
               socket.emit("admin:notify", notifyRes.data.data);
             } catch (e) {
               console.error("Failed to notify admins of ticket message", e);
+            }
+          }
+
+          if (text.trim().toLowerCase().startsWith("@ai")) {
+            const prompt = text.replace(/^@ai/i, "").trim() || "Thinking...";
+            setIsAiLoading(true);
+
+            try {
+              const aiRes = await axios.post("/api/ai", {
+                prompt,
+                conversationId,
+              });
+
+              if (aiRes.data?.data) {
+                const aiMsg = aiRes.data.data;
+                dispatch(addMessage(aiMsg));
+
+                if (socket && isConnected) {
+                  socket.emit("send_message", {
+                    conversationId,
+                    message: aiMsg,
+                  });
+                }
+                setTimeout(scrollToBottom, 50);
+              }
+            } catch (err) {
+              console.error("AI Error:", err);
+              toast.error("AI Assistant is having trouble thinking right now.");
+            } finally {
+              setIsAiLoading(false);
             }
           }
         }
@@ -623,7 +654,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
 
       <ScrollArea className="flex-1 h-full w-full">
         <div className="flex flex-col gap-3 pt-20 pb-24 px-4 sm:px-6">
-          {messages.map((msg, index) => {
+          {messages.map((msg: any, index: number) => {
             const senderId =
               typeof msg.sender === "string" ? msg.sender : msg.sender._id;
             const isMe = senderId === currentUser?._id;
@@ -653,6 +684,10 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                   "U"
                 : "U";
 
+            const isAi =
+              typeof msg.sender === "object" &&
+              msg.sender.email === "ai.assistant@system.local";
+
             return (
               <div key={msg._id}>
                 {showDateSeparator && (
@@ -681,12 +716,17 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                       <AvatarFallback
                         className={cn(
                           "bg-linear-to-br text-white font-semibold text-[10px]",
-                          getGradient(senderForGradient),
+                          isAi
+                            ? "from-violet-500 to-purple-600"
+                            : getGradient(senderForGradient),
                         )}
                       >
-                        {typeof msg.sender === "object" && msg.sender.firstName
-                          ? msg.sender.firstName[0]
-                          : "?"}
+                        {isAi
+                          ? "AI"
+                          : typeof msg.sender === "object" &&
+                              msg.sender.firstName
+                            ? msg.sender.firstName[0]
+                            : "?"}
                       </AvatarFallback>
                     </Avatar>
                   ) : !isMe ? (
@@ -699,18 +739,23 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                       isMe ? "items-end" : "items-start",
                     )}
                   >
-                    {!isMe && !isPrevFromSame && conversation?.isGroup && (
-                      <span className="text-[10px] font-semibold text-muted-foreground/60 mb-0.5 px-1">
-                        {senderName}
-                      </span>
-                    )}
+                    {!isMe &&
+                      !isPrevFromSame &&
+                      (conversation?.isGroup || isAi) && (
+                        <span className="text-[10px] font-semibold text-muted-foreground/60 mb-0.5 px-1">
+                          {isAi ? "AI Assistant" : senderName}
+                        </span>
+                      )}
 
                     <div
                       className={cn(
                         "px-4 py-2 text-sm transition-all duration-200 flex items-center gap-2 group/msg",
                         isMe
                           ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm hover:brightness-110"
-                          : "bg-card border border-border/40 text-card-foreground rounded-2xl rounded-tl-sm hover:bg-accent/30",
+                          : cn(
+                              "bg-card border border-border/40 text-card-foreground rounded-2xl rounded-tl-sm hover:bg-accent/30",
+                              isAi && "shadow-sm",
+                            ),
                       )}
                     >
                       <div className="flex-1">
@@ -829,6 +874,43 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                                 </>
                               )}
                             </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                if (msg.text) {
+                                  toast.info("AI is analyzing...");
+                                  setIsAiLoading(true);
+                                  try {
+                                    const aiRes = await axios.post("/api/ai", {
+                                      prompt:
+                                        "Please explain the meaning or intent of this message.",
+                                      context: msg.text,
+                                      conversationId,
+                                    });
+
+                                    if (aiRes.data?.data) {
+                                      const aiMsg = aiRes.data.data;
+                                      dispatch(addMessage(aiMsg));
+                                      if (socket && isConnected) {
+                                        socket.emit("send_message", {
+                                          conversationId,
+                                          message: aiMsg,
+                                        });
+                                      }
+                                      setTimeout(scrollToBottom, 50);
+                                    }
+                                  } catch (err) {
+                                    toast.error(
+                                      "Failed to generate AI response.",
+                                    );
+                                  } finally {
+                                    setIsAiLoading(false);
+                                  }
+                                }
+                              }}
+                            >
+                              <Smile className="h-4 w-4 mr-2" />
+                              Explain with AI
+                            </DropdownMenuItem>
                             {isMe && (
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
@@ -876,7 +958,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                           isMe ? "justify-end" : "justify-start",
                         )}
                       >
-                        {msg.reactions.map((reaction, i) => (
+                        {msg.reactions?.map((reaction: any, i: number) => (
                           <button
                             key={i}
                             onClick={() =>
@@ -913,6 +995,25 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
               </div>
             );
           })}
+          {isAiLoading && (
+            <div className="flex gap-2.5 max-w-[85%] md:max-w-[70%] mt-3 animate-in fade-in slide-in-from-bottom-2">
+              <Avatar className="h-7 w-7 mt-1 ring-1 ring-border/30 shrink-0">
+                <AvatarFallback className="bg-linear-to-br from-violet-500 to-purple-600 text-white font-semibold text-[10px]">
+                  AI
+                </AvatarFallback>
+              </Avatar>
+              <div className="flex flex-col items-start">
+                <span className="text-[10px] font-semibold text-muted-foreground/60 mb-0.5 px-1">
+                  AI Assistant
+                </span>
+                <div className="px-4 py-3 bg-card border border-border/40 text-card-foreground rounded-2xl rounded-tl-sm shadow-sm flex items-center gap-1.5">
+                  <div className="h-1.5 w-1.5 bg-primary rounded-full animate-dot-typing" />
+                  <div className="h-1.5 w-1.5 bg-primary rounded-full animate-dot-typing [animation-delay:0.2s]" />
+                  <div className="h-1.5 w-1.5 bg-primary rounded-full animate-dot-typing [animation-delay:0.4s]" />
+                </div>
+              </div>
+            </div>
+          )}
           <div ref={scrollRef} />
         </div>
       </ScrollArea>
