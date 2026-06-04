@@ -17,7 +17,7 @@ export async function generateAIResponse(messages: AiMessage[]) {
   }
 
   try {
-    const modelId = "qwen/qwen3.6-plus-preview:free";
+    const modelId = "openrouter/free";
 
     const response = await axios.post(
       "https://openrouter.ai/api/v1/chat/completions",
