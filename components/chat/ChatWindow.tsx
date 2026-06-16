@@ -202,7 +202,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
           : message.sender?._id;
       if (senderId !== currentUser?._id && notificationSoundRef.current) {
         notificationSoundRef.current.currentTime = 0;
-        notificationSoundRef.current.play().catch(() => {});
+        notificationSoundRef.current.play().catch(() => { });
 
         if (conversationId) {
           dispatch(markConversationAsRead(conversationId));
@@ -680,8 +680,8 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
             const senderForGradient =
               typeof msg.sender === "object"
                 ? `${msg.sender.firstName || ""} ${msg.sender.lastName || ""}`.trim() ||
-                  msg.sender.email ||
-                  "U"
+                msg.sender.email ||
+                "U"
                 : "U";
 
             const isAi =
@@ -724,7 +724,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                         {isAi
                           ? "AI"
                           : typeof msg.sender === "object" &&
-                              msg.sender.firstName
+                            msg.sender.firstName
                             ? msg.sender.firstName[0]
                             : "?"}
                       </AvatarFallback>
@@ -753,9 +753,9 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                         isMe
                           ? "bg-primary text-primary-foreground rounded-2xl rounded-tr-sm hover:brightness-110"
                           : cn(
-                              "bg-card border border-border/40 text-card-foreground rounded-2xl rounded-tl-sm hover:bg-accent/30",
-                              isAi && "shadow-sm",
-                            ),
+                            "bg-card border border-border/40 text-card-foreground rounded-2xl rounded-tl-sm hover:bg-accent/30",
+                            isAi && "shadow-sm",
+                          ),
                       )}
                     >
                       <div className="flex-1">
@@ -782,6 +782,14 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                                       controls
                                       className="max-w-full max-h-60 rounded-md"
                                     />
+                                  ) : attachment.type.startsWith("audio/") ? (
+                                    <div className="p-2 bg-background/50 rounded-lg flex items-center gap-2 max-w-full overflow-hidden">
+                                      <audio
+                                        src={attachment.url}
+                                        controls
+                                        className="max-w-full focus:outline-none"
+                                      />
+                                    </div>
                                   ) : (
                                     <a
                                       href={attachment.url}
@@ -825,9 +833,9 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                                 msg.isPinned
                                   ? "opacity-100 text-primary hover:bg-primary/10"
                                   : cn(
-                                      "opacity-0 group-hover/msg:opacity-100 text-muted-foreground hover:bg-accent",
-                                      isMobile && "opacity-100",
-                                    ),
+                                    "opacity-0 group-hover/msg:opacity-100 text-muted-foreground hover:bg-accent",
+                                    isMobile && "opacity-100",
+                                  ),
                               )}
                             >
                               <MoreVertical className="h-3.5 w-3.5" />
