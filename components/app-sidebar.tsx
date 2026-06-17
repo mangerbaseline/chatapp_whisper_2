@@ -91,7 +91,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild isActive={isActive}>
-                    <Link href={item.url}>{item.title}</Link>
+                    <Link
+                      href={item.url}
+                      onClick={() => {
+                        if (isMobile) {
+                          setOpenMobile(false);
+                        }
+                      }}
+                    >
+                      {item.title}
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               );

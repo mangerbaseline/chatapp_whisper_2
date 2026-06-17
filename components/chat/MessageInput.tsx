@@ -429,7 +429,7 @@ export default function MessageInput({
             </div>
           </div>
         ) : (
-          <div className="flex items-end gap-2">
+          <div className="flex flex-col w-full">
             <input
               type="file"
               multiple
@@ -437,93 +437,13 @@ export default function MessageInput({
               ref={fileInputRef}
               onChange={handleFileChange}
             />
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="mb-1 h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 cursor-pointer"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-            >
-              <Paperclip className="h-4 w-4" />
-            </Button>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mb-1 h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 cursor-pointer"
-                  disabled={isLoading}
-                >
-                  <Smile className="h-4 w-4" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent
-                side="top"
-                align="start"
-                className="p-0 border-none bg-transparent shadow-none w-auto"
-              >
-                <EmojiPicker
-                  onEmojiClick={onEmojiClick}
-                  theme={theme === "dark" ? Theme.DARK : Theme.LIGHT}
-                  lazyLoadEmojis={true}
-                />
-              </PopoverContent>
-            </Popover>
-            {recipientId && !isSupportChat && (
-              <SendTokensModal
-                recipientId={recipientId}
-                recipientName={recipientName || "User"}
-              >
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="mb-1 h-9 w-9 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 cursor-pointer"
-                  disabled={isLoading}
-                >
-                  <Coins className="h-4 w-4" />
-                </Button>
-              </SendTokensModal>
-            )}
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="mb-1 h-9 w-9 shrink-0 rounded-xl hover:bg-rose-500/10 hover:text-rose-500 text-rose-500/80 transition-all duration-200 cursor-pointer"
-              onClick={startRecording}
-              disabled={isLoading}
-              title="Record Voice Message"
-            >
-              <Mic className="h-4 w-4" />
-            </Button>
-
-            {SpeechRecognition && (
-              <Button
-                type="button"
-                variant={isDictating ? "default" : "ghost"}
-                size="icon"
-                className={cn(
-                  "mb-1 h-9 w-9 shrink-0 rounded-xl transition-all duration-200 cursor-pointer",
-                  isDictating ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "hover:bg-violet-500/10 hover:text-violet-500 text-violet-500/80"
-                )}
-                onClick={isDictating ? stopDictation : startDictation}
-                disabled={isLoading}
-                title={isDictating ? "Stop Dictation" : "Voice Dictation (Speech to Text)"}
-              >
-                {isDictating ? <MicOff className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
-              </Button>
-            )}
-
+            
             <Textarea
               value={message}
               onChange={handleChange}
               onKeyDown={handleKeyDown}
               placeholder={isDictating ? "Listening..." : "Type a message..."}
-              className="min-h-[20px] max-h-[150px] resize-none border-0 focus-visible:ring-0 bg-transparent py-3 px-3 shadow-none text-sm placeholder:text-muted-foreground/70"
+              className="min-h-[44px] max-h-[150px] resize-none border-0 focus-visible:ring-0 bg-transparent py-3 px-3 shadow-none text-sm placeholder:text-muted-foreground/70 w-full"
               disabled={isLoading}
               rows={1}
               style={{ height: "auto", minHeight: "44px" }}
@@ -533,21 +453,109 @@ export default function MessageInput({
                 target.style.height = `${Math.min(target.scrollHeight, 150)}px`;
               }}
             />
-            <Button
-              onClick={handleSend}
-              disabled={
-                (!message.trim() && selectedFiles.length === 0) || isLoading
-              }
-              size="icon"
-              className="mb-1 h-9 w-9 shrink-0 rounded-xl transition-all duration-200 cursor-pointer"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Send className="h-4 w-4" />
-              )}
-              <span className="sr-only">Send</span>
-            </Button>
+
+            <div className="flex items-end justify-between px-2 pb-1 pt-1 mt-auto">
+              <div className="flex items-center gap-0.5 sm:gap-1 flex-wrap">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 cursor-pointer"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isLoading}
+                  title="Attach File"
+                >
+                  <Paperclip className="h-4 w-4" />
+                </Button>
+
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 cursor-pointer"
+                      disabled={isLoading}
+                      title="Add Emoji"
+                    >
+                      <Smile className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent
+                    side="top"
+                    align="start"
+                    className="p-0 border-none bg-transparent shadow-none w-auto"
+                  >
+                    <EmojiPicker
+                      onEmojiClick={onEmojiClick}
+                      theme={theme === "dark" ? Theme.DARK : Theme.LIGHT}
+                      lazyLoadEmojis={true}
+                    />
+                  </PopoverContent>
+                </Popover>
+                
+                {recipientId && !isSupportChat && (
+                  <SendTokensModal
+                    recipientId={recipientId}
+                    recipientName={recipientName || "User"}
+                  >
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 shrink-0 rounded-xl hover:bg-primary/10 hover:text-primary transition-all duration-200 cursor-pointer"
+                      disabled={isLoading}
+                      title="Send Tokens"
+                    >
+                      <Coins className="h-4 w-4" />
+                    </Button>
+                  </SendTokensModal>
+                )}
+
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 shrink-0 rounded-xl hover:bg-rose-500/10 hover:text-rose-500 text-rose-500/80 transition-all duration-200 cursor-pointer"
+                  onClick={startRecording}
+                  disabled={isLoading}
+                  title="Record Voice Message"
+                >
+                  <Mic className="h-4 w-4" />
+                </Button>
+
+                {SpeechRecognition && (
+                  <Button
+                    type="button"
+                    variant={isDictating ? "default" : "ghost"}
+                    size="icon"
+                    className={cn(
+                      "h-8 w-8 shrink-0 rounded-xl transition-all duration-200 cursor-pointer",
+                      isDictating ? "bg-red-500 hover:bg-red-600 text-white animate-pulse" : "hover:bg-violet-500/10 hover:text-violet-500 text-violet-500/80"
+                    )}
+                    onClick={isDictating ? stopDictation : startDictation}
+                    disabled={isLoading}
+                    title={isDictating ? "Stop Dictation" : "Voice Dictation (Speech to Text)"}
+                  >
+                    {isDictating ? <MicOff className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+                  </Button>
+                )}
+              </div>
+
+              <Button
+                onClick={handleSend}
+                disabled={(!message.trim() && selectedFiles.length === 0) || isLoading}
+                size="icon"
+                className="h-9 w-9 shrink-0 rounded-xl transition-all duration-200 cursor-pointer ml-2 bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm hover:shadow-md"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="h-4 w-4 ml-0.5" />
+                )}
+                <span className="sr-only">Send</span>
+              </Button>
+            </div>
           </div>
         )}
       </div>

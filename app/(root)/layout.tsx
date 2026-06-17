@@ -8,10 +8,10 @@ export default function ChatLayout({
 }>) {
   return (
     <SidebarProvider>
-      <div className="flex flex-1 overflow-hidden h-screen w-full">
+      <div className="flex flex-1 overflow-hidden h-[100dvh] w-full">
         <ChatSidebar />
         <SidebarInset className="flex-1 bg-card">
-          <div className="flex flex-1 flex-col h-full overflow-y-auto">
+          <div className="flex flex-1 flex-col h-full overflow-hidden">
             {children}
           </div>
         </SidebarInset>

@@ -53,6 +53,7 @@ export function ChatSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
   const handleSelectConversation = (id: string) => {
     dispatch(selectConversation(id));
+    setOpenMobile(false);
   };
 
   const handleLogout = async () => {
@@ -110,6 +111,7 @@ export function ChatSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <UserSearchDialog
               onSelectUser={(conversationId: string) => {
                 dispatch(selectConversation(conversationId));
+                if (isMobile) setOpenMobile(false);
               }}
               tooltip="Search Users"
             >
@@ -126,6 +128,7 @@ export function ChatSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <GroupChatModal
               onSelectConversation={(conversationId: string) => {
                 dispatch(selectConversation(conversationId));
+                if (isMobile) setOpenMobile(false);
               }}
               tooltip="New Group Chat"
             >
@@ -141,7 +144,7 @@ export function ChatSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
             <Tooltip>
               <TooltipTrigger asChild>
-                <Link href="/connections">
+                <Link href="/connections" onClick={() => isMobile && setOpenMobile(false)}>
                   <Button
                     size="icon"
                     variant="ghost"
@@ -198,7 +201,7 @@ export function ChatSidebar(props: React.ComponentProps<typeof Sidebar>) {
             <div className="flex items-center gap-0.5 bg-muted/40 rounded-xl p-1">
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href="/wallet">
+                  <Link href="/wallet" onClick={() => isMobile && setOpenMobile(false)}>
                     <div className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-background/80 transition-all duration-200 cursor-pointer text-muted-foreground hover:text-foreground hover:scale-105">
                       <Wallet className="h-4 w-4" />
                     </div>
@@ -211,7 +214,7 @@ export function ChatSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href="/events">
+                  <Link href="/events" onClick={() => isMobile && setOpenMobile(false)}>
                     <div className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-background/80 transition-all duration-200 cursor-pointer text-muted-foreground hover:text-foreground hover:scale-105">
                       <CalendarDays className="h-4 w-4" />
                     </div>
@@ -224,7 +227,7 @@ export function ChatSidebar(props: React.ComponentProps<typeof Sidebar>) {
 
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Link href="/settings">
+                  <Link href="/settings" onClick={() => isMobile && setOpenMobile(false)}>
                     <div className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-background/80 transition-all duration-200 cursor-pointer text-muted-foreground hover:text-foreground hover:scale-105">
                       <Settings className="h-4 w-4" />
                     </div>
